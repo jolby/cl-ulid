@@ -42,7 +42,6 @@
 ;; (reduce (lambda (x y) (concatenate 'string x (string y))) result)
 ;; (reduce (lambda (x y) (concatenate 'string x (string y))) result)
 
-```
 (defun encode-timestamp (binary)
   (unless (= (length binary) +timestamp-len+)
     (error 'value-error :format-control "timestamp value has to be exactly 6 bytes long."))
@@ -64,8 +63,7 @@
     (setf (aref result 9) (aref lut (logand (aref binary 5) 31)))
     (values (coerce result 'string) result)
     ))
-```
-    ))
+
 ;; (encode-timestamp (vector 255 255 255 255 255 255))
-;; (encode-timestamp (sb-ext::string-to-octets "Hi Bob"))
+;; (encode-timestamp (crypto:random-data 6))
 ;; (length (vector 255 255 255 255 255 255))
