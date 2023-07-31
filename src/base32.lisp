@@ -1,5 +1,3 @@
-;; (ql:quickload '(:serapeum :cl+ssl :secure-random))
-
 (in-package :ulid)
 
 (defconstant +timestamp-len+ 6)

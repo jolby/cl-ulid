@@ -38,3 +38,15 @@ CL-USER>(ql:quickload :cl-ulid)
 CL-USER> (ulid::make-ulid-string)
 >"7RY42AX2813BWF1FA2RNVHC1JF"
 #+end_src
+
+* Strong Random
+The default cl-ulid system only uses the random function provided by the lisp implementation. This probably shouldn't be used for any sort of production system. At the cost of pulling in the ironclad system as a dependency, you can have a strong random generator.
+
+#+begin_src lisp
+CL-USER>(ql:quickload :cl-ulid/strong-random)
+> (:ULID/STRONG-RANDOM)
+CL-USER> ulid:*random-byte-fn*
+> #<FUNCTION IRONCLAD:RANDOM-DATA>
+CL-USER> (ulid::make-ulid-string)
+> "7RY42AX2813BWF1FA2RNVHC1JF"
+#+end_src

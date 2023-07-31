@@ -23,7 +23,11 @@
             :do (setf (aref bytes i) (random 256)))
         bytes))
 
-(defvar *random-byte-fn* #'%insecure-random-bytes)
+(defvar *random-byte-fn* #'%insecure-random-bytes
+  "Function to generate random bytes. Defaults to %insecure-random-bytes, which is
+not cryptographically secure. To use a cryptographically secure random byte
+generator you can use the the cl-uuid/strong-random system, which pulls in the ironclad
+system as a dependency.")
 
 (defstruct (ulid (:constructor %make-ulid))
   (bytes (make-array 16 :element-type '(unsigned-byte 8)) :read-only t)
