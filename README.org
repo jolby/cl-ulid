@@ -34,5 +34,5 @@ cl-ulid is not in quicklisp. It will need to be installed in the local-projects 
 CL-USER>(ql:quickload :cl-ulid)
 > (:ULID)
 CL-USER> (ulid::make-ulid-string)
->
+>"7RY42AX2813BWF1FA2RNVHC1JF"
 #+end_src
