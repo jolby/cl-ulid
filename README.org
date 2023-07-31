@@ -1,10 +1,10 @@
 #+title: ULID implementation in Common Lisp
 
-* A ==ULID== is a ==universally unique lexicographically sortable identifier==.
+* A *ULID* is a *universally unique lexicographically sortable identifier*.
 
 It is:
 
-- 128-bit compatible with ==UUID==
+- 128-bit compatible with *UUID*
 - 1.21e+24 unique ULIDs per millisecond
 - Lexicographically sortable!
 - Canonically encoded as a 26 character string, as opposed to the 36 character UUID
