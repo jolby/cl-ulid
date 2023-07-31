@@ -29,11 +29,17 @@
     (format t "all-passed: ~a~%" all-passed)
     (is-true all-passed)))
 
+(test timestamp-retreival
+  (let* ((ts (ulid::get-unix-time-ms))
+         (ulid-str (ulid:make-ulid-string ts))
+         (ulid (ulid:make-ulid ts)))
+    (is (=  ts (ulid:ulid-timestamp ulid-str) (ulid:ulid-timestamp ulid)))))
 
 ;; (ql:quickload '(:ulid/tests))
 ;; (run! 'ulid/tests-suite-exists)
 ;; (run! 'ulid/tests::valid-base32-encoder-input-1)
 ;; (run! 'ulid/tests::round-trip.smoke-1)
+;; (run! 'ulid/tests::timestamp-retreival)
 ;; (run! 'ulid/tests-suite)
 
 
