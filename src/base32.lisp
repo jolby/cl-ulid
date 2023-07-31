@@ -1,15 +1,5 @@
 ;; (ql:quickload '(:serapeum :cl+ssl :secure-random))
 
-(defpackage :ulid
-  (:use :cl)
-  (:export
-   #:encode-timestamp
-   #:encode-randomness
-   #:encode
-   #:decode-timestamp
-   #:decode-randomness
-   #:decode))
-
 (in-package :ulid)
 
 (defconstant +timestamp-len+ 6)
@@ -19,6 +9,10 @@
 (defconstant +timestamp-repr-len+ 10)
 (defconstant +randomness-repr-len+ 16)
 (defconstant +repr-len+ (+ +timestamp-repr-len+ +randomness-repr-len+))
+
+;;;; Lookup tables for encoding and decoding
+;;;; The encoding and decoding arithmetics are based on the implementation of RobThree
+;;;; https://github.com/RobThree/NUlid/blob/89f5a9fc827d191ae5adafe42547575ed3a47723/NUlid/Ulid.cs#L168
 
 (defparameter *encode* "0123456789ABCDEFGHJKMNPQRSTVWXYZ")
 
@@ -33,6 +27,9 @@
  index in O(1). We use 255 as 'sentinel' value for invalid indexes. ")
 
 (defun encode-timestamp (binary)
+  "Encode a 6-byte timestamp into a 10-char string representation. The timestamp uses 48 bits,
+taking 5 bits at a time, (crossing byte boundries when necessary) encoding into
+a char from the base32 lookup table."
   (unless (= (length binary) +timestamp-len+)
     (error "timestamp value has to be exactly 6 bytes long."))
   (let ((lut *encode*)
@@ -54,6 +51,9 @@
     (values (coerce result 'string) result)))
 
 (defun encode-randomness (binary)
+  "Encode a 10-byte random into a 16-char string representation. The random uses 80 bits,
+taking 5 bits at a time, (crossing byte boundries when necessary) encoding into
+a char from the base32 lookup table."
   (unless (= (length binary) +randomness-len+)
     (error "Randomness value has to be exactly 10 bytes long"))
   (let ((lut *encode*)
@@ -83,6 +83,11 @@
                                              (ash (logand (aref binary 9) 224) -5))))
     (setf (aref result 15) (aref lut (logand (aref binary 9) 31)))
     (values (coerce result 'string) result)))
+
+(defun encode-timestamp-and-random-bytes (timestamp-bytes random-bytes)
+  (concatenate 'string
+               (encode-timestamp timestamp-bytes)
+               (encode-randomness random-bytes)))
 
 (defun encode (binary)
   (unless (= (length binary) +bytes-len+)
@@ -121,7 +126,6 @@
 
 (defun decode-randomness (encoded)
   (unless (= (length encoded) +randomness-repr-len+)
-    (log:error "encoded: ~a, length: ~a" encoded (length encoded))
       (error "ULID randomness has to be exactly 16 characters long."))
   (let* ((lut *decode*)
          (enc-bytes (babel:string-to-octets encoded :encoding :ascii))
@@ -170,53 +174,3 @@
     (concatenate 'vector
                  (decode-timestamp timestamp-section)
                  (decode-randomness randomness-section))))
-
-(defun vec-elts-equal (v1 v2)
-  (loop for i from 0 below (length v1)
-        always (= (aref v1 i) (aref v2 i))))
-
-;; (encode-timestamp (vector 255 255 255 255 255 255))
-;; (encode-timestamp (vector 255 255 255 255 255 255 125)) ==> error
-;; (encode-randomness (vector 255 255 255 255 255 255 255 255 255 125))
-;; (encode-timestamp (crypto:random-data 6))
-;; (defparameter *rand-6* (crypto:random-data 6))
-;; (defparameter *rand-6-enc* (encode-timestamp *rand-6*))
-;; (coerce *rand-6-enc* '(vector (unsigned-byte 8)))
-;; (babel:string-to-octets *rand-6-enc* :encoding :ascii)
-;; (length (vector 255 255 255 255 255 255))
-
-#+(or) (let* ((encode-ts (encode-timestamp (crypto:random-data 6)))
-             (decode-ts (decode-timestamp encode-ts)))
-         (assert (equal (coerce (crypto:random-data 6) 'string)
-                        (coerce decode-ts 'string))))
-#+(or)(progn
-        (loop :for i :below 1000
-              :do (let* ((rand-6-bytes (crypto:random-data 6))
-                         (lisp-encode (encode-timestamp rand-6-bytes))
-                         (py-encode (ulid-py::ulid-py-encode-timestamp rand-6-bytes)))
-                    (assert (equal lisp-encode py-encode))))
-        (log:info "encode-timestamp test passed."))
-
-#+(or)(progn
-        (loop :for i :below 1000
-              :do (let* ((rand-10-bytes (crypto:random-data 10))
-                         (lisp-encode (encode-randomness rand-10-bytes))
-                         (py-encode (ulid-py::ulid-py-encode-randomness rand-10-bytes)))
-                    (assert (equal lisp-encode py-encode))))
-        (log:info "encode-randomness test passed."))
-
-#+(or)(progn
-        (loop :for i :below 1000
-              :do (let* ((rand-16-bytes (crypto:random-data 16))
-                         (lisp-encode (encode rand-16-bytes))
-                         (py-encode (ulid-py::ulid-py-encode rand-16-bytes)))
-                    (assert (equal lisp-encode py-encode))))
-        (log:info "encode test passed."))
-
-#+(or)(progn
-        (loop :for i :below 1000
-              :do (let* ((rand-16-bytes (crypto:random-data 16))
-                         (lisp-encode (encode rand-16-bytes))
-                         (lisp-decode (decode lisp-encode)))
-                    (assert (vec-elts-equal rand-16-bytes lisp-decode))))
-        (log:info "encode/decode test passed."))

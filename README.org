@@ -1,0 +1,38 @@
+#+title: ULID implementation in Common Lisp
+
+* A ==ULID== is a ==universally unique lexicographically sortable identifier==.
+
+It is:
+
+- 128-bit compatible with ==UUID==
+- 1.21e+24 unique ULIDs per millisecond
+- Lexicographically sortable!
+- Canonically encoded as a 26 character string, as opposed to the 36 character UUID
+- Uses Crockford's base32 for better efficiency and readability (5 bits per character)
+- Case insensitive
+- No special characters (URL safe)
+
+In general the structure of a ULID is as follows:
+   01AN4Z07BY      79KA1307SR9X4MV3
+  |----------|    |----------------|
+   Timestamp          Randomness
+     48bits             80bits
+
+For more information have a look at the original
+[[https://github.com/alizain/ulid#specification][specification]].
+
+* Installation
+cl-ulid is not in quicklisp. It will need to be installed in the local-projects quicklisp directory:
+
+#+begin_src bash
+  > cd /USER_HOME/quicklisp/local-projects/
+  > git clone https://github.com/jolby/cl-ulid.git
+#+end_src
+
+* Basic Usage at the REPL
+#+begin_src lisp
+CL-USER>(ql:quickload :cl-ulid)
+> (:ULID)
+CL-USER> (ulid::make-ulid-string)
+>
+#+end_src
