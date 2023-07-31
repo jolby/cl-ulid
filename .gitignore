@@ -16,4 +16,8 @@
 *.wx64fsl
 *.wx32fsl
 *.elc
+*cruft*
+*scratchpad*
 tmp/
+spec/
+implementations/
