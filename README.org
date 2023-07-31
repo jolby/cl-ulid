@@ -37,6 +37,11 @@ CL-USER>(ql:quickload :cl-ulid)
 > (:ULID)
 CL-USER> (ulid::make-ulid-string)
 >"7RY42AX2813BWF1FA2RNVHC1JF"
+CL-USER> ;;;; make-ulid returns a struct with bytes and code fields
+CL-USER> (ulid:make-ulid)
+#S(ULID:ULID
+   :BYTES #(104 203 56 174 137 1 18 207 23 180 41 2 105 149 3 189)
+   :CODE "38SCWAX2812B7HFD1909MSA0XX")
 #+end_src
 
 * Strong Random
