@@ -51,3 +51,13 @@ system as a dependency.")
          (ulid-str (encode combined-bytes)))
     (%make-ulid :bytes combined-bytes :code ulid-str)))
 ;; (make-ulid)
+
+(defgeneric ulid-timestamp (ulid)
+  (:documentation
+   "Returns the timestamp of the ulid as a unix time in milliseconds."))
+
+(defmethod ulid-timestamp ((ulid ulid))
+  (octets->int (subseq (ulid-bytes ulid) 0 +timestamp-len+) +timestamp-len+))
+
+(defmethod ulid-timestamp ((ulid string))
+  (octets->int (subseq (decode ulid) 0 +timestamp-len+) +timestamp-len+))

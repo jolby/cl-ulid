@@ -1,7 +1,8 @@
 (defpackage :ulid
   (:use :cl)
   (:import-from #:cl-intbytes
-                #:int->octets)
+                #:int->octets
+                #:octets->int)
   (:export
    #:encode-timestamp
    #:encode-randomness
@@ -13,4 +14,5 @@
    #:*random-byte-fn*
    #:ulid
    #:make-ulid
-   #:make-ulid-string))
+   #:make-ulid-string
+   #:ulid-timestamp))

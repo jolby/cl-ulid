@@ -42,6 +42,12 @@ CL-USER> (ulid:make-ulid)
 #S(ULID:ULID
    :BYTES #(104 203 56 174 137 1 18 207 23 180 41 2 105 149 3 189)
    :CODE "38SCWAX2812B7HFD1909MSA0XX")
+CL-USER> ;; Retrieve the timestamp from either the string or struct
+CL-USER> (let* ((ts (ulid::get-unix-time-ms))
+                (ulid-str (ulid:make-ulid-string ts))
+                (ulid (ulid:make-ulid ts)))
+           (list ts (ulid:ulid-timestamp ulid-str) (ulid:ulid-timestamp ulid)))
+> (1690846643000 1690846643000 1690846643000)
 #+end_src
 
 * Strong Random
