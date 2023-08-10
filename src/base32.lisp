@@ -1,5 +1,7 @@
 (in-package :ulid)
 
+(defconstant +time-max+ (1- (expt 2 48)))
+(defconstant +random-max+ (1- (expt 2 80)))
 (defconstant +timestamp-len+ 6)
 (defconstant +randomness-len+ 10)
 (defconstant +bytes-len+ (+ +timestamp-len+ +randomness-len+))
@@ -7,6 +9,13 @@
 (defconstant +timestamp-repr-len+ 10)
 (defconstant +randomness-repr-len+ 16)
 (defconstant +repr-len+ (+ +timestamp-repr-len+ +randomness-repr-len+))
+
+(deftype timestamp-byte-array () '(simple-array (unsigned-byte 8) (#.+timestamp-len+)))
+(deftype randomness-byte-array () '(simple-array (unsigned-byte 8) (#.+randomness-len+)))
+(deftype ulid-byte-array () '(simple-array (unsigned-byte 8) (#.+bytes-len+)))
+
+(deftype timestamp-integer () '(unsigned-byte 48))
+(deftype randomness-integer () '(unsigned-byte 80))
 
 ;;;; Lookup tables for encoding and decoding
 ;;;; The encoding and decoding arithmetics are based on the implementation of RobThree
@@ -24,10 +33,12 @@
   "Char to index lookup array for massive speedup since we can find a char's
  index in O(1). We use 255 as 'sentinel' value for invalid indexes. ")
 
-(defun encode-timestamp (binary)
+
+(defun encode-timestamp-bytes (binary)
   "Encode a 6-byte timestamp into a 10-char string representation. The timestamp uses 48 bits,
 taking 5 bits at a time, (crossing byte boundries when necessary) encoding into
 a char from the base32 lookup table."
+  (check-type binary timestamp-byte-array)
   (unless (= (length binary) +timestamp-len+)
     (error "timestamp value has to be exactly 6 bytes long."))
   (let ((lut *encode*)
@@ -48,10 +59,16 @@ a char from the base32 lookup table."
     (setf (aref result 9) (aref lut (logand (aref binary 5) 31)))
     (values (coerce result 'string) result)))
 
-(defun encode-randomness (binary)
+(defun encode-timestamp (timestamp)
+  "Encode a 48-bit timestamp into a 10-char string representation."
+  (check-type timestamp timestamp-integer)
+  (encode-timestamp-bytes (int->octets timestamp +timestamp-len+)))
+
+(defun encode-randomness-bytes (binary)
   "Encode a 10-byte random into a 16-char string representation. The random uses 80 bits,
 taking 5 bits at a time, (crossing byte boundries when necessary) encoding into
 a char from the base32 lookup table."
+  (check-type binary randomness-byte-array)
   (unless (= (length binary) +randomness-len+)
     (error "Randomness value has to be exactly 10 bytes long"))
   (let ((lut *encode*)
@@ -82,21 +99,27 @@ a char from the base32 lookup table."
     (setf (aref result 15) (aref lut (logand (aref binary 9) 31)))
     (values (coerce result 'string) result)))
 
-(defun encode-timestamp-and-random-bytes (timestamp-bytes random-bytes)
-  (concatenate 'string
-               (encode-timestamp timestamp-bytes)
-               (encode-randomness random-bytes)))
+(defun encode-randomness (random)
+  "Encode a 80-bit random into a 16-char string representation."
+  (check-type random randomness-integer)
+  (encode-randomness-bytes (int->octets random)))
 
-(defun encode (binary)
+(defun encode-timestamp-and-randomness-bytes (timestamp-bytes random-bytes)
+  (concatenate 'string
+               (encode-timestamp-bytes timestamp-bytes)
+               (encode-randomness-bytes random-bytes)))
+
+(defun encode-bytes (binary)
   (unless (= (length binary) +bytes-len+)
-    (error "ULID has to be exactly 16 bytes long"))
+    (error 'type-error "ULID bytes has to be exactly 16 bytes long"))
   (concatenate 'string
-               (encode-timestamp (subseq binary 0 +timestamp-len+))
-               (encode-randomness (subseq binary +timestamp-len+))))
+               (encode-timestamp-bytes (subseq binary 0 +timestamp-len+))
+               (encode-randomness-bytes (subseq binary +timestamp-len+))))
 
-(defun decode-timestamp (encoded)
+(defun decode-timestamp-to-bytes (encoded)
+  "Decode a 10-char string representation of a timestamp into a 6-byte array."
   (if (not (= (length encoded) +timestamp-repr-len+))
-      (error "ULID timestamp has to be exactly 10 characters long."))
+      (error 'type-error "ULID encoded timestamp has to be exactly 10 characters long."))
   (let* ((lut *decode*)
          (enc-bytes (babel:string-to-octets encoded :encoding :ascii))
          (result (make-array 6)))
@@ -122,9 +145,10 @@ a char from the base32 lookup table."
                                   #xFF))
     result))
 
-(defun decode-randomness (encoded)
+(defun decode-randomness-to-bytes (encoded)
+  "Decode a 16-char string representation of randomness into a 10-byte array."
   (unless (= (length encoded) +randomness-repr-len+)
-      (error "ULID randomness has to be exactly 16 characters long."))
+      (error 'type-error "ULID encoded randomness has to be exactly 16 characters long."))
   (let* ((lut *decode*)
          (enc-bytes (babel:string-to-octets encoded :encoding :ascii))
          (result (make-array 10)))
@@ -164,7 +188,8 @@ a char from the base32 lookup table."
                                   #xFF))
     result))
 
-(defun decode (encoded)
+(defun decode-to-bytes (encoded)
+  "Decode a 26-char string representation of a ULID into a 16-byte array."
   (if (not (= (length encoded) +repr-len+))
       (error "Encoded ULID has to be exactly 26 characters long."))
   (let* ((timestamp-section (subseq encoded 0 +timestamp-repr-len+))
@@ -172,3 +197,11 @@ a char from the base32 lookup table."
     (concatenate 'vector
                  (decode-timestamp timestamp-section)
                  (decode-randomness randomness-section))))
+
+(defun decode-to-values (encoded)
+  "Decode a 26-char string representation of a ULID, returning integer values: timestamp, randomness."
+  )
+
+(defun decode-to-ulid (encoded)
+  "Decode a 26-char string representation of a ULID into a ULID struct."
+  )

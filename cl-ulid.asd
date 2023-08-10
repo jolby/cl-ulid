@@ -4,9 +4,9 @@
   (:use :cl :asdf))
 (in-package :cl-ulid-asd)
 
-(defsystem "cl-ulid"
+(defsystem "cl-ulid/insecure-core"
   :version "0.1.0"
-  :description "ULID implementation in Common Lisp"
+  :description "ULID implementation in Common Lisp. Core uses lisp implementation of randomness."
   :author "Joel Boehland <jboehland@gmail.com>"
   :license "Apache 2.0"
   :depends-on ("cl-intbytes")
@@ -16,7 +16,19 @@
    :components
    ((:file "package")
     (:file "base32")
-    (:file "ulid"))))
+    (:file "ulid")))))
+
+(defsystem "cl-ulid"
+  :version "0.1.0"
+  :description "ULID implementation in Common Lisp. Uses ironclad for randomness."
+  :author "Joel Boehland <jboehland@gmail.com>"
+  :license "Apache 2.0"
+  :depends-on ("ironclad" "cl-ulid/insecure-core")
+  :serial t
+  :components
+  ((:module "src"
+    :components
+    ((:file "ironclad-random"))))
   :in-order-to ((test-op (load-op "cl-ulid/tests")))
   :perform (test-op (op c)
                     (unless

@@ -53,7 +53,7 @@
 ;; (babel:string-to-octets *rand-6-enc* :encoding :ascii)
 ;; (length (vector 255 255 255 255 255 255))
 
-#+(or) (let* ((encode-ts (encode-timestamp (crypto:random-data 6)))
+#+(or)(let* ((encode-ts (encode-timestamp (crypto:random-data 6)))
              (decode-ts (decode-timestamp encode-ts)))
          (assert (equal (coerce (crypto:random-data 6) 'string)
                         (coerce decode-ts 'string))))
