@@ -11,6 +11,8 @@
   (loop for i from 0 below (length v1)
         always (= (aref v1 i) (aref v2 i))))
 
+(test valid-time-and-random-integers )
+
 (test valid-base32-encoder-input-1
   ;; one byte too many ==> error
   (signals simple-error (encode-timestamp (vector 255 255 255 255 255 255 125)))
@@ -21,7 +23,7 @@
 (test round-trip.smoke-1
   (let ((all-passed 't))
     (loop :for i :below 1000
-          :do (let* ((rand-16-bytes (funcall *random-byte-fn* ulid::+bytes-len+))
+          :do (let* ((rand-16-bytes (funcall *random-bytes-fn* ulid::+bytes-len+))
                      (lisp-encode (encode rand-16-bytes))
                      (lisp-decode (decode lisp-encode)))
                 (unless (vec-elts-equal rand-16-bytes lisp-decode)
@@ -33,7 +35,7 @@
   (let* ((ts (ulid::get-unix-time-ms))
          (ulid-str (ulid:make-ulid-string ts))
          (ulid (ulid:make-ulid ts)))
-    (is (=  ts (ulid:ulid-timestamp ulid-str) (ulid:ulid-timestamp ulid)))))
+    (is (= ts (ulid:ulid-timestamp ulid-str) (ulid:ulid-timestamp ulid)))))
 
 ;; (ql:quickload '(:ulid/tests))
 ;; (run! 'ulid/tests-suite-exists)

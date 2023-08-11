@@ -47,8 +47,9 @@ monotonicity guarantee is maintained.")
 (declaim (special *ulid-generator*))
 
 (defstruct (ulid (:constructor %make-ulid))
-  (timestamp 0 :type 'timestamp-integer :read-only t)
-  (randomness 0 :type 'randomness-integer :read-only t))
+  ;; (timestamp 0 :type 'timestamp-integer :read-only t)
+  ;; (randomness 0 :type 'randomness-integer :read-only t)
+  (ulid-bytes (make-array +bytes-len+ :element-type '(unsigned-byte 8)) :type ulid:ulid-byte-array))
 ;; (%make-ulid)
 
 (defstruct (ulid-generator (:constructor %make-ulid-generator))
@@ -59,7 +60,7 @@ monotonicity guarantee is maintained.")
 
 (defun make-ulid-generator (&key
                               (last-timestamp (get-unix-time-ms))
-                              (last-randomness (funcall *random-number-fn* +random-max+))
+                              (last-randomness (funcall *random-number-fn* +randomness-max+))
                               (random-number-fn *random-number-fn*)
                               (random-bytes-fn *random-bytes-fn*))
   (%make-ulid-generator :last-timestamp last-timestamp
@@ -75,23 +76,30 @@ monotonicity guarantee is maintained.")
   `(call-with-ulid-generator (lambda () ,@body)
     ,@(when generator `(:generator ,generator))))
 
-(defun make-ulid-string (&key
-                           (time (get-unix-time-ms))
-                           (generator *default-ulid-generator*))
+(defun make-ulid (&key
+                    (time (get-unix-time-ms))
+                    (generator *default-ulid-generator*))
+  (check-type time timestamp-integer)
   (if (= time (ulid-generator-last-timestamp generator))
       (let ((randomness (incf (ulid-generator-last-randomness generator))))
-        (when (> randomness +random-max+)
+        (when (> randomness +randomness-max+)
           (setf (ulid-generator-last-randomness generator) 0)))
       (setf (ulid-generator-last-randomness generator)
-            (funcall (ulid-generator-random-number-fn generator) +random-max+)))
-  (let* ((timestamp-bytes (int->octets time +timestamp-len+))
-         (random-bytes (int->octets (ulid-generator-last-randomness generator) +randomness-len+)))
-    (setf (ulid-generator-last-timestamp generator) time)
-    (encode-timestamp-and-randomness-bytes timestamp-bytes random-bytes)))
+            (funcall (ulid-generator-random-number-fn generator) +randomness-max+)))
+  ;; (let* ((timestamp-bytes (int->octets time +timestamp-len+))
+  ;;        (random-bytes (int->octets (ulid-generator-last-randomness generator) +randomness-len+)))
+  ;;   (setf (ulid-generator-last-timestamp generator) time)
+  ;;   (encode-timestamp-and-randomness-bytes timestamp-bytes random-bytes))
+  (let ((ulid-bytes (make-ulid-byte-array))
+        (ulid-string (make-ulid-string-array)))
+    (ub48set/be ulid-bytes 0 time)
+    (ub80set/be ulid-bytes +timestamp-bytes-len+ (ulid-generator-last-randomness generator))
+    (values (encode-ulid-bytes ulid-bytes ulid-string) ulid-bytes)))
+
 
 
 ;; (make-ulid-string)
-;;
+;; (time (loop for i from 0 to 1000 collect (make-ulid-string)))
 
 ;; (with-output-to-string (s) (format s "~a" "hello"))
 ;; (call-with-ulid-generator (lambda () (format t "~a" *ulid-generator*)))
