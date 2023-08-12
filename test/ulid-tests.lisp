@@ -23,8 +23,8 @@
          (frozen-time (get-unix-time-ms)))
     (let ((*ulid-generator* ulid-generator))
       (multiple-value-bind (ulid-str ulid-bytes) (ulid frozen-time)
-        (format t "~%ulid-str: ~a~%" ulid-str)
-        (format t "ulid-bytes: ~a~%" ulid-bytes)
+        ;; (format t "~%ulid-str: ~a~%" ulid-str)
+        ;; (format t "ulid-bytes: ~a~%" ulid-bytes)
         (is (not (null ulid-str)) "First ulid string should generate")
         (is (not (null ulid-bytes)) "First ulid bytes should generate"))
       (signals simple-error (ulid frozen-time)))))
@@ -53,7 +53,6 @@
               (every #'string-lessp normal-ulids (rest normal-ulids))))))
 ;; (run! 'ulid/tests::lexigraphic-sorting)
 
-
 (test round-trip.smoke-1
   (let* ((frozen-time (get-unix-time-ms))
          (random-fn (make-mock-random-fn 0))
@@ -64,6 +63,9 @@
           :for time = frozen-time :then (1+ time)
           :do (multiple-value-bind (ulid-str ulid-bytes) (ulid time)
                 (multiple-value-bind (ts random) (decode-to-values ulid-str)
+                  (is (= ts time) "Timestamp should round-trip")
+                  (is (= random rnd) "Randomness should round-trip"))
+                (multiple-value-bind (ts random) (decode-to-values ulid-bytes)
                   (is (= ts time) "Timestamp should round-trip")
                   (is (= random rnd) "Randomness should round-trip"))))))
 ;; (run! 'ulid/tests::round-trip.smoke-1)
