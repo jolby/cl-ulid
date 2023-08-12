@@ -1,4 +1,4 @@
-(in-package :ulid)
+(in-package :base-32)
 
 (defconstant +time-max+ (1- (expt 2 48)))
 (defconstant +randomness-max+ (1- (expt 2 80)))
@@ -18,6 +18,8 @@
 (deftype timestamp-integer () '(integer 0 #.+time-max+))
 (deftype randomness-integer () '(integer 0 #.+randomness-max+))
 
+(declaim (inline encode-timestamp-bytes encode-randomness-bytes encode-ulid-bytes
+                 decode-timestamp-to-bytes decode-randomness-to-bytes decode-ulid-to-bytes decode-to-values))
 ;;;; Lookup tables for encoding and decoding
 ;;;; The encoding and decoding arithmetics are based on the implementation of RobThree
 ;;;; https://github.com/RobThree/NUlid/blob/89f5a9fc827d191ae5adafe42547575ed3a47723/NUlid/Ulid.cs#L168

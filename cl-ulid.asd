@@ -9,13 +9,13 @@
   :description "ULID implementation in Common Lisp. Core uses lisp implementation of randomness."
   :author "Joel Boehland <jboehland@gmail.com>"
   :license "Apache 2.0"
-  :depends-on ("nibbles" "cl-intbytes")
+  :depends-on ("babel" "nibbles")
   :serial t
   :components
   ((:module "src"
    :components
    ((:file "nibbles-patch")
-    (:file "package")
+    (:file "packages")
     (:file "base32")
     (:file "ulid")))))
 
