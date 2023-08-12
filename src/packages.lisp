@@ -38,22 +38,25 @@
    #:encode-timestamp-and-randomness-bytes
    #:decode-timestamp-to-bytes
    #:decode-randomness-to-bytes
-   #:decode-ulid-to-bytes
-   #:decode-to-values))
+   #:decode-ulid-to-bytes))
 
 (defpackage :ulid
   (:use :cl)
   (:import-from #:nibbles
+                #:ub48ref/be
                 #:ub48set/be
+                #:ub80ref/be
                 #:ub80set/be)
   (:import-from #:base-32
                 #:+time-max+
                 #:+randomness-max+
                 #:+timestamp-bytes-len+
+                #:ulid-byte-array
                 #:timestamp-integer
                 #:randomness-integer
                 #:make-ulid-bytes-array
                 #:make-ulid-string-array
+                #:decode-ulid-to-bytes
                 #:encode-ulid-bytes)
   (:export
    #:*random-bytes-fn*
@@ -62,4 +65,5 @@
    #:*ulid-generator*
    #:get-unix-time-ms
    #:make-ulid-generator
-   #:ulid))
+   #:ulid
+   #:decode-to-values))

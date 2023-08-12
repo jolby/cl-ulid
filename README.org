@@ -27,7 +27,7 @@ For more information have a look at the original
 cl-ulid is not in quicklisp. It will need to be installed in the local-projects quicklisp directory:
 
 #+begin_src bash
-  > cd /USER_HOME/quicklisp/local-projects/
+  > cd /$USER_HOME/quicklisp/local-projects/
   > git clone https://github.com/jolby/cl-ulid.git
 #+end_src
 
@@ -35,19 +35,21 @@ cl-ulid is not in quicklisp. It will need to be installed in the local-projects 
 #+begin_src lisp
 CL-USER>(ql:quickload :cl-ulid)
 > (:ULID)
-CL-USER> (ulid::make-ulid-string)
->"7RY42AX2813BWF1FA2RNVHC1JF"
-CL-USER> ;;;; make-ulid returns a struct with bytes and code fields
-CL-USER> (ulid:make-ulid)
-#S(ULID:ULID
-   :BYTES #(104 203 56 174 137 1 18 207 23 180 41 2 105 149 3 189)
-   :CODE "38SCWAX2812B7HFD1909MSA0XX")
-CL-USER> ;; Retrieve the timestamp from either the string or struct
-CL-USER> (let* ((ts (ulid::get-unix-time-ms))
-                (ulid-str (ulid:make-ulid-string ts))
-                (ulid (ulid:make-ulid ts)))
-           (list ts (ulid:ulid-timestamp ulid-str) (ulid:ulid-timestamp ulid)))
-> (1690846643000 1690846643000 1690846643000)
+CL-USER> ;; (ulid:ulid) returns the values of a ULID encoded as a string as well as a byte array
+CL-USER> (ulid::ulid)
+>"01H7NR28J0FEDWV9G66ZRKJY4V"
+#(1 137 235 129 34 64 123 155 205 166 6 55 241 57 120 155)
+CL-USER> ;; (Retrieve the encoded values from the string or byte array
+CL-USER> (let* ((ulid-generator (ulid:make-ulid-generator :random-number-fn (lambda (x) 1)))
+                (time (ulid:get-unix-time-ms)))
+           (multiple-value-bind (ulid-str ulid-bytes) (funcall ulid-generator time)
+             (multiple-value-bind (ts random) (ulid:decode-to-values ulid-str)
+               (assert (= ts time))
+               (assert (= random 1)))
+             (multiple-value-bind (ts random) (ulid:decode-to-values ulid-bytes)
+               (assert (= ts time))
+               (assert (= random 1))))
+           (format nil "DONE~%"))
 #+end_src
 
 * Strong Random
@@ -58,6 +60,9 @@ CL-USER>(ql:quickload :cl-ulid/strong-random)
 > (:ULID/STRONG-RANDOM)
 CL-USER> ulid:*random-byte-fn*
 > #<FUNCTION IRONCLAD:RANDOM-DATA>
-CL-USER> (ulid::make-ulid-string)
-> "7RY42AX2813BWF1FA2RNVHC1JF"
 #+end_src
+
+* Other Common Lisp implementations.
+There is at least one other common lisp implementation that I know of:
+ https://gitlab.com/colinstrickland/cms-ulid.git
+ Unfortunately, I was already in the middle of this implementation when I found that one. The code in that implementation seems cleaner than this project, but it probably never hurts to have more than one implementation to choose from.

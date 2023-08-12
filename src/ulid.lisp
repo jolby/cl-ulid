@@ -84,7 +84,7 @@ the random component to overflow with less, the generation will fail.
                     last-randomness random-number)
               (when (> random-number +randomness-max+)
                 (error (format nil
-                               "Randomness overflow! local-random: ~a, *last-randomness*: ~a~%"
+                               "Randomness overflow! local-random: ~a, last-randomness: ~a~%"
                                random-number last-randomness))))
             (progn
               (setf random-number (funcall random-number-fn +randomness-max+)
@@ -95,3 +95,14 @@ the random component to overflow with less, the generation will fail.
 (defun ulid (&optional (timestamp (get-unix-time-ms)))
   "Generate a ULID. If timestamp is not provided, the current time in ms is used."
   (funcall (or *ulid-generator* *default-ulid-generator*) timestamp))
+
+(defun decode-to-values (encoded)
+  "Decode ENCODED. ENCODED is either a 26-char string representation of a ULID,
+or a 16 byte representation of a ULID.
+ returning integer values: timestamp,randomness."
+  (etypecase encoded
+    (string (let ((ulid-bytes (decode-ulid-to-bytes encoded)))
+              (values (ub48ref/be ulid-bytes 0)
+                      (ub80ref/be ulid-bytes +timestamp-bytes-len+))))
+    (ulid-byte-array (values (ub48ref/be encoded 0)
+                             (ub80ref/be encoded +timestamp-bytes-len+)))))

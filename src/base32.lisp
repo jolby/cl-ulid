@@ -238,13 +238,3 @@ a char from the base32 lookup table."
     (decode-randomness-to-bytes randomness-section ulid-bytes-array +timestamp-bytes-len+)
     ulid-bytes-array))
 
-(defun decode-to-values (encoded)
-  "Decode ENCODED. ENCODED is either a 26-char string representation of a ULID,
-or a 16 byte representation of a ULID.
- returning integer values: timestamp,randomness."
-  (etypecase encoded
-    (string (let ((ulid-bytes (decode-ulid-to-bytes encoded)))
-              (values (ub48ref/be ulid-bytes 0)
-                      (ub80ref/be ulid-bytes +timestamp-bytes-len+))))
-    (ulid-byte-array (values (ub48ref/be encoded 0)
-                             (ub80ref/be encoded +timestamp-bytes-len+)))))
