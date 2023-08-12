@@ -54,6 +54,21 @@
 ;; (run! 'ulid/tests::lexigraphic-sorting)
 
 
+(test round-trip.smoke-1
+  (let* ((frozen-time (get-unix-time-ms))
+         (random-fn (make-mock-random-fn 0))
+         (ulid-generator (make-ulid-generator :random-number-fn random-fn))
+         (*ulid-generator* ulid-generator))
+    (loop for i :below 10
+          for rnd = 1 :then (1+ rnd)
+          :for time = frozen-time :then (1+ time)
+          :do (multiple-value-bind (ulid-str ulid-bytes) (ulid time)
+                (multiple-value-bind (ts random) (decode-to-values ulid-str)
+                  (is (= ts time) "Timestamp should round-trip")
+                  (is (= random rnd) "Randomness should round-trip"))))))
+;; (run! 'ulid/tests::round-trip.smoke-1)
+;; (defparameter *r-1-inc* (make-mock-random-fn 1))
+;; (funcall *r-1-inc* 1)
 
 ;;(run! 'ulid/tests::timestamp-and-randomness-type-checking)
 ;;(check-type (1+ +time-max+) ulid::timestamp-integer)
