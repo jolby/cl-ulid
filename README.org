@@ -34,7 +34,7 @@ cl-ulid is not in quicklisp. It will need to be installed in the local-projects 
 * Basic Usage at the REPL
 #+begin_src lisp
 CL-USER>(ql:quickload :cl-ulid)
-> (:ULID)
+> (:CL-ULID)
 CL-USER> ;; (ulid:ulid) returns the values of a ULID encoded as a string as well as a byte array
 CL-USER> (ulid::ulid)
 >"01H7NR28J0FEDWV9G66ZRKJY4V"
@@ -53,16 +53,10 @@ CL-USER> (let* ((ulid-generator (ulid:make-ulid-generator :random-number-fn (lam
 #+end_src
 
 * Strong Random
-The default cl-ulid system only uses the random function provided by the lisp implementation. This probably shouldn't be used for any sort of production system. At the cost of pulling in the ironclad system as a dependency, you can have a strong random generator.
-
-#+begin_src lisp
-CL-USER>(ql:quickload :cl-ulid/strong-random)
-> (:ULID/STRONG-RANDOM)
-CL-USER> ulid:*random-byte-fn*
-> #<FUNCTION IRONCLAD:RANDOM-DATA>
-#+end_src
+The default cl-ulid system uses ironclad's strong-random for the RNG. It is very easy to provide another RNG source if desired. Look at the ironclad-random.lisp file to see how it is done.
 
 * Other Common Lisp implementations.
 There is at least one other common lisp implementation that I know of:
- https://gitlab.com/colinstrickland/cms-ulid.git
- Unfortunately, I was already in the middle of this implementation when I found that one. The code in that implementation seems cleaner than this project, but it probably never hurts to have more than one implementation to choose from.
+https://gitlab.com/colinstrickland/cms-ulid.git
+
+Unfortunately, I was already in the middle of this implementation when I found that one. The code in that implementation seems cleaner than this project, but it probably never hurts to have more than one implementation to choose from.
